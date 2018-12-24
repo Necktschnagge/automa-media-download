@@ -1,0 +1,36 @@
+import time
+
+
+def main():
+ dw_helper_icon = Image("dw_helper_icon.png")
+ download_icon = Image("download_not_executed_icon.png")
+ scroll_down = Image("scroll_down.png")
+ scrolled_down_done = Image("scrolled_down_done.png")
+ #time.sleep(10)
+ press(LWIN + "3"); # open firefox
+ while(1):
+  print("top of infinite loop.")
+  time.sleep(20)
+  if not dw_helper_icon.exists():
+      #press(ALT + F4)
+      press(LWIN + "S");
+      press('p'); #,"o","w", "e", "r"
+      write("owershell");
+      press(ENTER);
+      #write("Beep(1400,2000); #I am done")
+      #press(ENTER)
+      return
+  print("found dw_helper_icon.")
+  click(dw_helper_icon)
+  #while(not scrolled_down_done.exists()):
+  #  print("not yet scrolled down enough.")
+  #  click(scroll_down)
+  #print("Reached scrolled_down_done.")
+  for x in range(30):
+    click(scrolled_down_done)
+  wait_until(lambda: download_icon.exists(),600,3.0)
+  click(download_icon)
+  time.sleep(10)
+  click("Speichern")
+
+main()
