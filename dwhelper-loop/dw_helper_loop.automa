@@ -1,16 +1,73 @@
 import time
 
+WAIT_AFTER_DOWNLOAD_STARTED = 20
+
+dw_helper_icon = Image("dw_helper_icon.png")
+scroll_down = Image("scroll_down.png")
+download_icon = Image("download_not_executed_icon.png")
+advanced_options = Image("advanced_options.png")
+open_media_locally = Image("open_media_locally.png")
+delete_entry_from_list = Image("delete_entry_from_list.png")
+quick_download = Image("quick_download.png")
+scrolled_down_done = Image("scrolled_down_done.png")
+already_downloaded_lets_play_icon = Image("already_downloaded_lets_play_icon.png",0.95)
+download_icon_2 = Image("download_not_executed_icon.png",0.95)
+
+
+def search_for_new_entry():
+ time.sleep(2)
+ click(dw_helper_icon)
+ if not download_icon.exists():
+  click(scroll_down)
+  return False
+
+ print("found a maybe-download icon.")
+ hover(download_icon)
+ time.sleep(2)
+ if not advanced_options.exists():
+  print("No advanced options button.")
+  while(1):
+   time.sleep(10)
+ click(advanced_options)
+ hover(dw_helper_icon)
+ time.sleep(2)
+
+ if open_media_locally.exists():
+  print("already downloaded.")
+  if not delete_entry_from_list.exists():
+   print("file already downloaded but cannot remove item from list.")
+   while(1):
+    time.sleep(10)
+  click(delete_entry_from_list)
+  return False
+ else:
+  print("not yet downloaded")
+  hover(dw_helper_icon)
+  time.sleep(1)
+  if not quick_download.exists():
+   print("file not yet downloaded but cannot click quick download button.")
+   while(1):
+    time.sleep(10)
+  print("found quick_download button and click it.")
+  click(quick_download)
+  return True
+
+def more_than_two_items():
+ list_downloads = find_all(download_icon_2)
+ list_plays = find_all(already_downloaded_lets_play_icon)
+ #print("Found " + len(list_downloads) + " download icons and " + len(list_plays) + " play icons.")
+ return (len(list_downloads) + len(list_plays) > 1)
+
+def central_loop():
+ print("Wait until there are more than two items in the list.")
+ wait_until(lambda: more_than_two_items(),600,10)
+ print("Found a ")
 
 def main():
- dw_helper_icon = Image("dw_helper_icon.png")
- download_icon = Image("download_not_executed_icon.png")
- scroll_down = Image("scroll_down.png")
- scrolled_down_done = Image("scrolled_down_done.png")
  #time.sleep(10)
  press(LWIN + "3"); # open firefox
  while(1):
   print("top of infinite loop.")
-  time.sleep(20)
   if not dw_helper_icon.exists():
       #press(ALT + F4)
       press(LWIN + "S");
@@ -21,16 +78,23 @@ def main():
       #press(ENTER)
       return
   print("found dw_helper_icon.")
-  click(dw_helper_icon)
-  #while(not scrolled_down_done.exists()):
-  #  print("not yet scrolled down enough.")
-  #  click(scroll_down)
-  #print("Reached scrolled_down_done.")
-  for x in range(30):
-    click(scrolled_down_done)
-  wait_until(lambda: download_icon.exists(),600,3.0)
-  click(download_icon)
-  time.sleep(10)
-  click("Speichern")
+  wait_until(lambda: search_for_new_entry(),600,1.0)# wait 10 minutes if there is no entry in the table that is downloaded.
+  # should be changed so some wait only if no entry is present.
+  time.sleep(WAIT_AFTER_DOWNLOAD_STARTED)
 
+'''
+wait_until 10min until there is anything to do
+
+'''
 main()
+'''
+enhancement:
+* check that dwhelper icon with a blue or reds flag is also recognized and clicked.
+* close the successfully downloaded message toast right lower corner.
+*! check that last item will not be deleted after downloaded because then a new (the same item appers again as not yet downloaded.)
+* check also for regcognize the -> arrow of already downloaded items in the list. and exclude scrolling if list might be empty. (because then web page scrollbar will be used.)
+*! if a new item appears in the list, it has for some seconds the name of the previous entry. if you download in this time junk, it will be downloaded with wrong name.
+        -> solution: only do something if there are at least two items, first care about deleting items already downloaded.
+        if been in idle state (i.e. see list with exactly one element), and recognized a new element, insert a additional delay.
+*
+'''
