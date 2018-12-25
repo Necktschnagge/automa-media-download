@@ -8,19 +8,17 @@ DELAY_AFTER_DOWNLOADING_ONE_ITEM = 5
 WAIT_AFTER_DOWNLOAD_STARTED = 20
 
 dw_helper_icon = Image("dw_helper_icon.png")
-scroll_down = Image("scroll_down.png")
-download_icon = Image("download_not_executed_icon.png")
+download_icon = Image("download_not_executed_icon.png",0.95)
 advanced_options = Image("advanced_options.png")
 open_media_locally = Image("open_media_locally.png")
 delete_entry_from_list = Image("delete_entry_from_list.png")
 quick_download = Image("quick_download.png")
 scrolled_down_done = Image("scrolled_down_done.png")
 already_downloaded_lets_play_icon = Image("already_downloaded_lets_play_icon.png",0.95)
-download_icon_2 = Image("download_not_executed_icon.png",0.95)
 
 ''' be sure dwhelper icon is already clicked an the item list is visible '''
 def wait_on_exactly_one_download_item(): # manually tested
- list_downloads = find_all(download_icon_2)
+ list_downloads = find_all(download_icon)
  if len(list_downloads) == 1:
   print("Additional waiting before downloading the last item.")
   time.sleep(20)
@@ -51,7 +49,7 @@ def can_process_items(): # manually tested
   time.sleep(3)
   press(LWIN)
   stop() # put this locig to another position where you can pause and resume the script
- list_downloads = find_all(download_icon_2)
+ list_downloads = find_all(download_icon)
  list_plays = find_all(already_downloaded_lets_play_icon)
  print("Found " + str(len(list_downloads)) + " download icons and " + str(len(list_plays)) + " play icons.")
  return (len(list_downloads) + len(list_plays) > 1) or (len(list_downloads) > 0)
@@ -86,13 +84,13 @@ def delete_an_item():
 def download_an_item():
  print("Start downloading an item.")
  #hover(Point(100,5))
- if not download_icon_2.exists():
+ if not download_icon.exists():
   print("No item to download found.")
   stop()
  wait_on_exactly_one_download_item()
- x = find_all(download_icon_2)
+ x = find_all(download_icon)
  hover(x[len(x) - 1])
- #hover(download_icon_2)
+ #hover(download_icon)
  if not advanced_options.exists():
   print("No advanced options button.")
   stop()
@@ -115,7 +113,7 @@ def download_an_item():
 def process_one_item():
  print("Step of processing one list item started.")
  list_plays = find_all(already_downloaded_lets_play_icon)
- list_downloads = find_all(download_icon_2)
+ list_downloads = find_all(download_icon)
  if (len(list_plays) > 0) and can_process_items():
   print("Found at least one item to delete from list.")
   delete_an_item()
@@ -178,37 +176,11 @@ def main():
  processing_loop()
  print("MAIN ERROR.")
  stop()
- press(LWIN + "3"); # open firefox
- time.sleep(20)
- while(1):
-  print("top of infinite loop.")
-  if not dw_helper_icon.exists():
-      #press(ALT + F4)
-      press(LWIN + "S");
-      press('p'); #,"o","w", "e", "r"
-      write("owershell");
-      press(ENTER);
-      #write("Beep(1400,2000); #I am done")
-      #press(ENTER)
-      return
-  print("found dw_helper_icon.")
-  wait_until(lambda: search_for_new_entry(),600,1.0)# wait 10 minutes if there is no entry in the table that is downloaded.
-  # should be changed so some wait only if no entry is present.
-  time.sleep(WAIT_AFTER_DOWNLOAD_STARTED)
 
-'''
-wait_until 10min until there is anything to do
-
-'''
 main()
+
 '''
 enhancement:
-* check that dwhelper icon with a blue or reds flag is also recognized and clicked.
-* close the successfully downloaded message toast right lower corner.
-*! check that last item will not be deleted after downloaded because then a new (the same item appers again as not yet downloaded.)
-* check also for regcognize the -> arrow of already downloaded items in the list. and exclude scrolling if list might be empty. (because then web page scrollbar will be used.)
-*! if a new item appears in the list, it has for some seconds the name of the previous entry. if you download in this time junk, it will be downloaded with wrong name.
-        -> solution: only do something if there are at least two items, first care about deleting items already downloaded.
-        if been in idle state (i.e. see list with exactly one element), and recognized a new element, insert a additional delay.
+* check that dwhelper icon with a blue or reds flag is also recognized and clicked. -> at the moment it performs "wait_until" till the symbol appears.
 *
 '''
