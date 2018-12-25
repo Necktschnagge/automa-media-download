@@ -1,5 +1,10 @@
 import time
+from win32con import VK_CAPITAL
 
+
+DELAY_IN_IDLE = 60 #
+DELAY_ON_LEAVE_IDLE = 10 # needed since if a new item of download appers it takes a while until it is labled right by dwhelper
+DELAY_AFTER_DOWNLOADING_ONE_ITEM = 5
 WAIT_AFTER_DOWNLOAD_STARTED = 20
 
 dw_helper_icon = Image("dw_helper_icon.png")
@@ -52,20 +57,148 @@ def search_for_new_entry():
   click(quick_download)
   return True
 
-def more_than_two_items():
+
+def stop():
+ while(1):
+  time.sleep(60)
+
+def CAPSLOCK_STATE():
+ import ctypes
+ hllDll = ctypes.WinDLL ("User32.dll")
+ VK_CAPITAL = 0x14
+ return ((hllDll.GetKeyState(VK_CAPITAL)) & 0xffff) != 0
+
+''' be sure dwhelper icon is already clicked an dthis item list is visible '''
+def can_process_items(): # manually tested
+ #if GetKeyState(VK_CAPITAL) == 1:
+ # print("CAPS Lock is on.")
+ #print("Abort script now.")
+ #press(LWIN)
+ #stop()
  list_downloads = find_all(download_icon_2)
  list_plays = find_all(already_downloaded_lets_play_icon)
- #print("Found " + len(list_downloads) + " download icons and " + len(list_plays) + " play icons.")
- return (len(list_downloads) + len(list_plays) > 1)
+ print("Found " + str(len(list_downloads)) + " download icons and " + str(len(list_plays)) + " play icons.")
+ return (len(list_downloads) + len(list_plays) > 1) or (len(list_downloads) > 0)
 
-def central_loop():
- print("Wait until there are more than two items in the list.")
- wait_until(lambda: more_than_two_items(),600,10)
- print("Found a ")
+''' enter with dw helper menu open and leave with menu closed'''
+def delete_an_item():
+ print("Start to delete an item.")
+ if not already_downloaded_lets_play_icon.exists():
+  print("No item to delte found.")
+  stop()
+ hover(already_downloaded_lets_play_icon)
+ if not advanced_options.exists():
+  print("No advanced options button.")
+  stop()
+ click(advanced_options)
+ hover(dw_helper_icon)
+ time.sleep(1) # ???
+ if not open_media_locally.exists():
+  print("Item not already downloaded.")
+  print("Could not delete item.")
+  click(dw_helper_icon)
+  return
+ if not delete_entry_from_list.exists():
+  print("Item has no delete from list button.")
+  print("Could not delete item.")
+  click(dw_helper_icon)
+  return
+ click(delete_entry_from_list)
+ print("Delete item finished.")
+
+ ''' enter with dw helper menu open and leave with menu closed'''
+def download_an_item():
+ print("Start downloading an item.")
+ #hover(Point(100,5))
+ if not download_icon_2.exists():
+  print("No item to download found.")
+  stop()
+ x = find_all(download_icon_2)
+ hover(x[len(x) - 1])
+ #hover(download_icon_2)
+ if not advanced_options.exists():
+  print("No advanced options button.")
+  stop()
+ click(advanced_options)
+ hover(dw_helper_icon)
+ time.sleep(1) # ???
+ if open_media_locally.exists():
+  print("Item already downloaded.")
+  print("Will not download it twice.")
+  click(dw_helper_icon)
+  return
+ if not quick_download.exists():
+  print("Item has no quick download button.")
+  print("Could not download item.")
+  click(dw_helper_icon)
+  return
+ click(quick_download)
+ print("Download item triggered.")
+
+def process_one_item():
+ print("Step of processing one list item started.")
+ list_plays = find_all(already_downloaded_lets_play_icon)
+ list_downloads = find_all(download_icon_2)
+ if (len(list_plays) > 0) and can_process_items():
+  print("Found at least one item to delete from list.")
+  delete_an_item()
+  print("Step of processing one list item ended.")
+  if not dw_helper_icon.exists():
+   print("Error: No dwhelper icon after deletion of an item.")
+   stop()
+  click(dw_helper_icon)
+  return
+ print("Did not found any item to delete.")
+ if len(list_downloads) > 0:
+  print("Found at least one item to download.")
+  download_an_item()
+  print("Step of processing one list item ended.")
+  time.sleep(DELAY_AFTER_DOWNLOADING_ONE_ITEM)
+  if not dw_helper_icon.exists():
+   print("Error: No dwhelper icon after downloading an item.")
+   stop()
+  click(dw_helper_icon)
+  return
+ print("ERROR: There is nothing to do in this step.")
+ print("Step of processing one list item ended.")
+
+
+def processing_loop():
+ print("Entered processing loop just now.")
+ while(1):
+  print("In IDLE state.")
+  print("Wait until can process at least one item in the list.")
+  if not dw_helper_icon.exists():
+   print("No dwhelper icon found.")
+   break
+  click(dw_helper_icon)
+  try:
+   wait_until(lambda: can_process_items(),600,10)# throws exception.
+  except:
+   print("Could not find new item within timeout.")
+   break
+  print("Found at least one item that can be processed.")
+  print("Left IDLE state just now.")
+  time.sleep(DELAY_ON_LEAVE_IDLE)
+  while (can_process_items()):
+   process_one_item()
+  if not dw_helper_icon.exists():
+   print("No dwhelper icon found to close dwhelper menu")
+  click(dw_helper_icon) # leave dwhelper menu
+  print("No more items to process at the moment.")
+  print("Go into IDLE state now.")
+  time.sleep(DELAY_IN_IDLE)
+ print("Exited the processing loop just now.")
+
 
 def main():
- #time.sleep(10)
  press(LWIN + "3"); # open firefox
+ time.sleep(5)
+ processing_loop()
+ print("MAIN ERROR.")
+ stop()
+ press(LWIN + "3"); # open firefox
+ time.sleep(20)
  while(1):
   print("top of infinite loop.")
   if not dw_helper_icon.exists():
