@@ -18,44 +18,12 @@ scrolled_down_done = Image("scrolled_down_done.png")
 already_downloaded_lets_play_icon = Image("already_downloaded_lets_play_icon.png",0.95)
 download_icon_2 = Image("download_not_executed_icon.png",0.95)
 
-
-def search_for_new_entry():
- time.sleep(2)
- click(dw_helper_icon)
- if not download_icon.exists():
-  click(scroll_down)
-  return False
-
- print("found a maybe-download icon.")
- hover(download_icon)
- time.sleep(2)
- if not advanced_options.exists():
-  print("No advanced options button.")
-  while(1):
-   time.sleep(10)
- click(advanced_options)
- hover(dw_helper_icon)
- time.sleep(2)
-
- if open_media_locally.exists():
-  print("already downloaded.")
-  if not delete_entry_from_list.exists():
-   print("file already downloaded but cannot remove item from list.")
-   while(1):
-    time.sleep(10)
-  click(delete_entry_from_list)
-  return False
- else:
-  print("not yet downloaded")
-  hover(dw_helper_icon)
-  time.sleep(1)
-  if not quick_download.exists():
-   print("file not yet downloaded but cannot click quick download button.")
-   while(1):
-    time.sleep(10)
-  print("found quick_download button and click it.")
-  click(quick_download)
-  return True
+''' be sure dwhelper icon is already clicked an the item list is visible '''
+def wait_on_exactly_one_download_item(): # manually tested
+ list_downloads = find_all(download_icon_2)
+ if len(list_downloads) == 1:
+  print("Additional waiting before downloading the last item.")
+  time.sleep(20)
 
 
 def stop():
@@ -121,6 +89,7 @@ def download_an_item():
  if not download_icon_2.exists():
   print("No item to download found.")
   stop()
+ wait_on_exactly_one_download_item()
  x = find_all(download_icon_2)
  hover(x[len(x) - 1])
  #hover(download_icon_2)
@@ -162,6 +131,10 @@ def process_one_item():
   download_an_item()
   print("Step of processing one list item ended.")
   time.sleep(DELAY_AFTER_DOWNLOADING_ONE_ITEM)
+  try:
+   wait_until(lambda: dw_helper_icon.exists(),60,3)
+  except:
+   print("No dw_helper_icon within timeout.") ## collaps with the if below.
   if not dw_helper_icon.exists():
    print("Error: No dwhelper icon after downloading an item.")
    stop()
