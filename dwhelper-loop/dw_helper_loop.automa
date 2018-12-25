@@ -75,6 +75,14 @@ def can_process_items(): # manually tested
  #print("Abort script now.")
  #press(LWIN)
  #stop()
+ if CAPSLOCK_STATE():
+  print("CAPS Lock is on.")
+  print("Abort script now.")
+  press(CAPSLOCK)
+  press(LWIN)
+  time.sleep(3)
+  press(LWIN)
+  stop() # put this locig to another position where you can pause and resume the script
  list_downloads = find_all(download_icon_2)
  list_plays = find_all(already_downloaded_lets_play_icon)
  print("Found " + str(len(list_downloads)) + " download icons and " + str(len(list_plays)) + " play icons.")
