@@ -129,7 +129,7 @@ def process_one_item():
   print("Step of processing one list item ended.")
   time.sleep(DELAY_AFTER_DOWNLOADING_ONE_ITEM)
   try:
-   wait_until(lambda: dw_helper_icon.exists(),60,3)
+   wait_until(lambda: dw_helper_icon.exists(),300,1)
   except:
    print("No dw_helper_icon within timeout.") ## collaps with the if below.
   if not dw_helper_icon.exists():
