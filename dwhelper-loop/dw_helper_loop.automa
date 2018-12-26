@@ -83,14 +83,13 @@ def delete_an_item():
  ''' enter with dw helper menu open and leave with menu closed'''
 def download_an_item():
  print("Start downloading an item.")
- #hover(Point(100,5))
  if not download_icon.exists():
   print("No item to download found.")
   stop()
  wait_on_exactly_one_download_item()
+ hover(dw_helper_icon)
  x = find_all(download_icon)
  hover(x[len(x) - 1])
- #hover(download_icon)
  if not advanced_options.exists():
   print("No advanced options button.")
   stop()
